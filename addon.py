@@ -87,7 +87,7 @@ SITE_LOGIN_PAGE = SITE_PATH + 'user/signin'
 @plugin.route('/')
 def main_menu():
 
-    request = urllib2.Request(ONLI_MASTER_MENU, headers={"User-Agent" : "XBMC/Kodi BGTime.TV Addon " + str(__version__)})
+    request = urllib2.Request(ONLI_MASTER_MENU, headers={"User-Agent" : "XBMC/Kodi MyTV Addon " + str(__version__)})
     response = urllib2.urlopen(request)
 
     dataNew = json.loads(response.read())
@@ -329,7 +329,7 @@ class login:
 	
 	def getData(self, url):
 		send = urllib.urlencode(self.data)
-		self.request = urllib2.Request(url, send, headers={"User-Agent" : "XBMC/Kodi BGTime.TV Addon " + str(__version__)})
+		self.request = urllib2.Request(url, send, headers={"User-Agent" : "XBMC/Kodi MyTV Addon " + str(__version__)})
 		
 		try:
 			response = urllib2.urlopen(self.request)
