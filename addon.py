@@ -254,8 +254,8 @@ class Player(xbmc.Player):
 	def onPlayBackStopped(self):
 
 		if self.info is not None:
-			pass
 			self.reportPlaybackProgress(self.info, 'stop')
+			
 		self.is_playing = False
 
 	def onPlayBackSeek(self, time, seekOffset):
