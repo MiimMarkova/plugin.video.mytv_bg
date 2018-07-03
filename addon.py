@@ -308,10 +308,9 @@ def tvPlay(url, title, show_title, tracking_key):
 	has_inputstream = _has_inputstream()
 
 	if has_inputstream: 
-		log('inputstream.adaptive')
 		li.setProperty('inputstreamaddon', 'inputstream.adaptive')
 		li.setProperty('inputstream.adaptive.manifest_type', 'hls')
-		log('mytv play')
+
 		player.play(url, li)
 		xbmc.sleep(500)
 
@@ -319,7 +318,6 @@ def tvPlay(url, title, show_title, tracking_key):
 	# if video doesn't start because of inputstream_adaptive 
 	if not player.isPlaying():
 		new_li = xbmcgui.ListItem(label=show_title + ' ' + title)
-		log('mytv play again')
 		player.play(url, new_li)
 
 
@@ -439,7 +437,6 @@ class Player(xbmc.Player):
 			return token
 		
 	def reportPlaybackProgress(self, info, action):
-		log( action)
 		token = self.getToken()
 		if info is None: return
 		if self.tracking_key is not None:
