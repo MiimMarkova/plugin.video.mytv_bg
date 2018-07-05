@@ -8,7 +8,7 @@ import xbmcplugin
 import xbmc
 import xbmcaddon
 import xbmcplugin
-
+import routing
 from urllib2 import urlopen, HTTPError
 import urlparse
 from pyxbmct.addonwindow import *
@@ -32,75 +32,7 @@ __profile_path__    = xbmc.translatePath( __addon__.getAddonInfo('profile') ).de
 __token_filepath__  = __profile_path__ + '/token.txt'
 
 
-class Plugin(object):
-	
-	def __init__(self, base_url=None):
-		self.rules = []  # function to list of rules
-		self.handle = int(sys.argv[1]) if sys.argv[1].isdigit() else -1
-		self.base_url = "plugin://" + xbmcaddon.Addon().getAddonInfo('id')
-
-	def route_for(self, path):
-		if path.startswith( self.base ):
-			path = path.split('?')
-
-			path = path[0]
-		pass
-
-	def url_for(self, func, args, **kwargs):
-		for rule in self.rules:
-			if func == rule['idx']:
-				return self.base_url + '/'+ func+'/'+args
-			elif func is None:
-				return self.base_url + '/'
-
-
-	def route(self, pattern):
-		# Add the route
-		def decorator(func):
-			fidx = pattern.split('/')
-			fidx = fidx.pop(1)
-
-			kw_pattern = r'<(?:[^:]+:)?([A-z]+)>'
-			_keywords = re.findall(kw_pattern, pattern)
-
-			keywords = True if len(_keywords) > 0  else False
-			
-			self.rules.append({
-			'idx'	: fidx,
-			'func' : func,
-			'keywords': keywords
-			})
-		
-		return decorator
-
-
-	def run(self):
-		if len(sys.argv) > 2:
-			self.args = sys.argv[2]
-
-		path = urlparse.urlsplit(sys.argv[0]).path or '/'
-		self._dispatch(path)
-
-
-	def redirect(self, path):
-		self._dispatch(path)
-
-	def _dispatch(self, path):
-		for rule in iter(self.rules):
-			if rule['idx'] == path.split('/')[1]:
-
-				if rule['keywords']: 
-					rule['func'](path.split('/')[2]+self.args) 
-				else:	
-					rule['func']()
-
-
-router = Plugin()
-
-# LOG Method
-def log(text):
-	xbmc.log('%s addon: %s' % (__addon_name__, text))
-	
+router = routing.Plugin()
 
 # BEGIN # Plugin
 class Plugin_mod(object):
@@ -171,7 +103,7 @@ def main_menu():
 		items.append({
 			'label': label,
 			'key': u"{0}".format(key),
-			'url': router.url_for('tvList', urllib.quote_plus(val['key'])+'?'+urllib.urlencode({'title' : label})),
+			'url': router.url_for(tvList, urllib.quote_plus(val['key'])+'?'+urllib.urlencode({'title' : label})),
 			'thumb': "{0}".format(val["thumb"])})
 
 	return plugin.add_items(items, False, [xbmcplugin.SORT_METHOD_VIDEO_SORT_TITLE, xbmcplugin.SORT_METHOD_VIDEO_TITLE])
@@ -254,7 +186,7 @@ def tvList(url):
 						'label': u"{0}".format(val['title']),
 						'label2': u"{0}".format(getTrackingKey(val)),
 						'key': u"{0}".format(key),
-						'url': router.url_for('tvPlayCaller', urllib.quote_plus(val['key'])+'?'+urllib.urlencode(url_parameters)),
+						'url': router.url_for(tvPlayCaller, urllib.quote_plus(val['key'])+'?'+urllib.urlencode(url_parameters)),
 						'thumb': "{0}".format(val["thumb"])})
 				elif val['type'] == 'menu':
 					label = val['title'].encode('utf-8')
@@ -266,7 +198,7 @@ def tvList(url):
 					items.append({
 						'label': label,
 						'key': u"{0}".format(key),
-						'url': router.url_for('tvList', urllib.quote_plus(val['key'])+'?'+urllib.urlencode(url_parameters)),
+						'url': router.url_for(tvList, urllib.quote_plus(val['key'])+'?'+urllib.urlencode(url_parameters)),
 						'thumb': "{0}".format(val["thumb"])})
 
 
@@ -297,14 +229,11 @@ def tvPlayCaller(url):
 def tvPlay(url, title, show_title, tracking_key):
 	player = Player()
 
-	#if we start video without stopping the previous
+	#if previous is running calling onPlayerStopped
 	if player.isPlaying(): 
 		player.stop()
-		del player
-		player = Player()
 	
 	li = xbmcgui.ListItem(label=show_title + ' ' + title)
-
 	has_inputstream = _has_inputstream()
 
 	if has_inputstream: 
@@ -314,12 +243,10 @@ def tvPlay(url, title, show_title, tracking_key):
 		player.play(url, li)
 		xbmc.sleep(500)
 
-
 	# if video doesn't start because of inputstream_adaptive 
 	if not player.isPlaying():
 		new_li = xbmcgui.ListItem(label=show_title + ' ' + title)
 		player.play(url, new_li)
-
 
 	player.is_playing = True
 	
@@ -587,4 +514,4 @@ def __log(text):
 	
 
 if __name__ == '__main__':
-	router.run()
+	router.run(sys.argv)
